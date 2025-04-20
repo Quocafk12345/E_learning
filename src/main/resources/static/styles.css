@@ -1,0 +1,245 @@
+/* Base Styles - Similar to Bootstrap's reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f5f7fa;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Card Component - Similar to Spring Boot Thymeleaf templates with Bootstrap */
+.card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    margin-bottom: 20px;
+}
+
+/* Typography */
+h1 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+h2 {
+    color: #3498db;
+    margin-bottom: 15px;
+}
+
+h3 {
+    color: #2c3e50;
+    margin: 15px 0 10px;
+}
+
+p {
+    margin-bottom: 15px;
+}
+
+/* Form Elements */
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+/* Buttons - Similar to Bootstrap buttons */
+.btn {
+    display: inline-block;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    transition: background-color 0.3s, transform 0.1s;
+}
+
+.btn:active {
+    transform: translateY(1px);
+}
+
+.btn-primary {
+    background-color: #3498db;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #2980b9;
+}
+
+.btn-secondary {
+    background-color: #95a5a6;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #7f8c8d;
+}
+
+.button-group {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+/* Screen Management */
+.screen {
+    display: none;
+}
+
+.screen.active {
+    display: block;
+}
+
+/* Header */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+#student-info,
+#review-student-info {
+    font-weight: 600;
+    color: #3498db;
+}
+
+/* Quiz Specific Styles */
+.quiz-header {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+}
+
+.progress-container {
+    width: 100%;
+    height: 8px;
+    background-color: #ecf0f1;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+#progress-bar {
+    height: 100%;
+    background-color: #3498db;
+    border-radius: 4px;
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+#question-counter {
+    text-align: right;
+    font-size: 14px;
+    color: #7f8c8d;
+}
+
+#question-text {
+    margin-bottom: 20px;
+}
+
+/* Options */
+.option {
+    display: block;
+    width: 100%;
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    text-align: left;
+}
+
+.option:hover {
+    background-color: #e9ecef;
+}
+
+.option.selected {
+    background-color: #d6eaf8;
+    border-color: #3498db;
+}
+
+/* Review Screen */
+#marked-questions-container,
+#all-answers-container {
+    margin-bottom: 20px;
+}
+
+#marked-questions-list {
+    list-style-type: none;
+}
+
+#marked-questions-list li {
+    padding: 8px 0;
+    border-bottom: 1px solid #ecf0f1;
+}
+
+.question-review {
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+}
+
+.question-review h4 {
+    margin-bottom: 10px;
+    color: #2c3e50;
+}
+
+.marked-badge {
+    display: inline-block;
+    background-color: #f39c12;
+    color: white;
+    font-size: 12px;
+    padding: 3px 8px;
+    border-radius: 10px;
+    margin-left: 10px;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    .container {
+        padding: 10px;
+    }
+
+    .card {
+        padding: 20px;
+    }
+
+    .button-group {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .btn {
+        width: 100%;
+    }
+}

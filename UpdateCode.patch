@@ -1,0 +1,2433 @@
+Subject: [PATCH] UpdateCode
+---
+Index: org.eclipse.egit.core.cmp-master/.org.eclipse.egit.core.cmp-master/src/main/java/com/todoApp/config/SessionContext.java
+===================================================================
+diff --git a/org.eclipse.egit.core.cmp-master/.org.eclipse.egit.core.cmp-master/src/main/java/com/todoApp/config/SessionContext.java b/org.eclipse.egit.core.cmp-master/.org.eclipse.egit.core.cmp-master/src/main/java/com/todoApp/config/SessionContext.java
+deleted file mode 100644
+--- a/org.eclipse.egit.core.cmp-master/.org.eclipse.egit.core.cmp-master/src/main/java/com/todoApp/config/SessionContext.java	(revision c975aeefe410ec14cf1a571eaa7b73fb6dec708a)
++++ /dev/null	(revision c975aeefe410ec14cf1a571eaa7b73fb6dec708a)
+@@ -1,19 +0,0 @@
+-package com.todoApp.config;
+-
+-
+-public class SessionContext {
+-
+-    private static String username;
+-
+-    public static void setUsername(String username) {
+-        SessionContext.username = username;
+-    }
+-
+-    public static String getUsername() {
+-        return username;
+-    }
+-
+-    public static void clear() {
+-        SessionContext.username = null;
+-    }
+-}
+Index: org.eclipse.egit.core (2).cmp-master/.idea/.gitignore
+===================================================================
+diff --git a/org.eclipse.egit.core (2).cmp-master/.idea/.gitignore b/org.eclipse.egit.core (2).cmp-master/.idea/.gitignore
+deleted file mode 100644
+--- a/org.eclipse.egit.core (2).cmp-master/.idea/.gitignore	(revision c975aeefe410ec14cf1a571eaa7b73fb6dec708a)
++++ /dev/null	(revision c975aeefe410ec14cf1a571eaa7b73fb6dec708a)
+@@ -1,8 +0,0 @@
+-# Default ignored files
+-/shelf/
+-/workspace.xml
+-# Editor-based HTTP Client requests
+-/httpRequests/
+-# Datasource local storage ignored files
+-/dataSources/
+-/dataSources.local.xml
+Index: org.eclipse.egit.core (2).cmp-master/.idea/misc.xml
+===================================================================
+diff --git a/org.eclipse.egit.core (2).cmp-master/.idea/misc.xml b/org.eclipse.egit.core (2).cmp-master/.idea/misc.xml
+deleted file mode 100644
+--- a/org.eclipse.egit.core (2).cmp-master/.idea/misc.xml	(revision c975aeefe410ec14cf1a571eaa7b73fb6dec708a)
++++ /dev/null	(revision c975aeefe410ec14cf1a571eaa7b73fb6dec708a)
+@@ -1,6 +0,0 @@
+-<?xml version="1.0" encoding="UTF-8"?>
+-<project version="4">
+-  <component name="ProjectRootManager" version="2" languageLevel="JDK_21" default="true" project-jdk-name="corretto-21 (2)" project-jdk-type="JavaSDK">
+-    <output url="file://$PROJECT_DIR$/classes" />
+-  </component>
+-</project>
+\ No newline at end of file
+Index: org.eclipse.egit.core (2).cmp-master/.idea/vcs.xml
+===================================================================
+diff --git a/org.eclipse.egit.core (2).cmp-master/.idea/vcs.xml b/org.eclipse.egit.core (2).cmp-master/.idea/vcs.xml
+deleted file mode 100644
+--- a/org.eclipse.egit.core (2).cmp-master/.idea/vcs.xml	(revision c975aeefe410ec14cf1a571eaa7b73fb6dec708a)
++++ /dev/null	(revision c975aeefe410ec14cf1a571eaa7b73fb6dec708a)
+@@ -1,6 +0,0 @@
+-<?xml version="1.0" encoding="UTF-8"?>
+-<project version="4">
+-  <component name="VcsDirectoryMappings">
+-    <mapping directory="$PROJECT_DIR$/.." vcs="Git" />
+-  </component>
+-</project>
+\ No newline at end of file
+Index: demo1/src/main/java/example/elearning/service/QuizService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/demo1/src/main/java/example/elearning/service/QuizService.java b/demo1/src/main/java/example/elearning/service/QuizService.java
+new file mode 100644
+--- /dev/null	(date 1745041714334)
++++ b/demo1/src/main/java/example/elearning/service/QuizService.java	(date 1745041714334)
+@@ -0,0 +1,86 @@
++package example.elearning.service;
++
++import example.elearning.entity.*;
++import example.elearning.repository.*;
++import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.stereotype.Service;
++import org.springframework.transaction.annotation.Transactional;
++
++import java.time.LocalDateTime;
++import java.util.List;
++
++@Service
++public class QuizService {
++
++    @Autowired
++    private StudentRepository studentRepository;
++
++    @Autowired
++    private AttemptRepository attemptRepository;
++
++    @Autowired
++    private QuestionRepository questionRepository;
++
++    @Autowired
++    private AnswerRepository answerRepository;
++
++    public Attempt createStudentAndAttempt(String studentName) {
++        Student student = new Student();
++        student.setName(studentName);
++        student = studentRepository.save(student);
++
++        Attempt attempt = new Attempt();
++        attempt.setStudent(student);
++        attempt.setStartTime(LocalDateTime.now());
++        return attemptRepository.save(attempt);
++    }
++
++    public List<Question> getQuestions() {
++        return questionRepository.findAll();
++    }
++
++    @Transactional
++    public Attempt submitQuiz(Long attemptId, List<Answer> answers) {
++        Attempt attempt = attemptRepository.findById(attemptId)
++                .orElseThrow(() -> new RuntimeException("Attempt not found"));
++
++        // Xóa các câu trả lời cũ (nếu có) để tránh xung đột
++        answerRepository.deleteByAttemptId(attemptId);
++
++        // Lưu các câu trả lời mới
++        for (Answer answer : answers) {
++            Answer newAnswer = new Answer(); // Tạo Answer mới để tránh ID không hợp lệ
++            newAnswer.setAttempt(attempt);
++            newAnswer.setQuestion(questionRepository.findById(answer.getQuestion().getId())
++                    .orElseThrow(() -> new RuntimeException("Question not found")));
++            newAnswer.setSelectedOption(answer.getSelectedOption());
++            newAnswer.setIsMarked(false); // Mặc định không đánh dấu
++            answerRepository.save(newAnswer);
++        }
++
++        // Tính điểm
++        double score = calculateScore(answers);
++
++        // Cập nhật điểm và thời gian kết thúc
++        attempt.setScore(score);
++        attempt.setEndTime(LocalDateTime.now());
++        return attemptRepository.save(attempt);
++    }
++
++    private double calculateScore(List<Answer> answers) {
++        if (answers == null || answers.isEmpty()) {
++            return 0.0;
++        }
++
++        double totalQuestions = answers.size();
++        double correctCount = answers.stream()
++                .filter(answer -> {
++                    Question question = questionRepository.findById(answer.getQuestion().getId())
++                            .orElse(null);
++                    String selected = answer.getSelectedOption();
++                    return question != null && selected != null && selected.equals(question.getCorrectAnswer());
++                })
++                .count();
++        return (correctCount / totalQuestions) * 100; // Trả về phần trăm
++    }
++}
+\ No newline at end of file
+Index: demo1/src/main/java/example/elearning/repository/AttemptRepository.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/demo1/src/main/java/example/elearning/repository/AttemptRepository.java b/demo1/src/main/java/example/elearning/repository/AttemptRepository.java
+new file mode 100644
+--- /dev/null	(date 1744971314580)
++++ b/demo1/src/main/java/example/elearning/repository/AttemptRepository.java	(date 1744971314580)
+@@ -0,0 +1,9 @@
++package example.elearning.repository;
++
++import example.elearning.entity.Attempt;
++import org.springframework.data.jpa.repository.JpaRepository;
++import org.springframework.stereotype.Repository;
++
++@Repository
++public interface AttemptRepository extends JpaRepository<Attempt,Long> {
++}
+Index: quoc-tutorial/src/main/resources/templates/index.html
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/quoc-tutorial/src/main/resources/templates/index.html b/quoc-tutorial/src/main/resources/templates/index.html
+new file mode 100644
+--- /dev/null	(date 1744602512745)
++++ b/quoc-tutorial/src/main/resources/templates/index.html	(date 1744602512745)
+@@ -0,0 +1,104 @@
++<!DOCTYPE html>
++<html lang="en">
++
++<head>
++    <meta charset="UTF-8" />
++    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
++    <title>E-Learning Quiz System</title>
++    <link rel="stylesheet" href="styles.css" />
++</head>
++
++<body>
++<div class="container">
++    <!-- Login Screen -->
++    <div id="login-screen" class="screen active">
++        <h1>E-Learning Quiz System</h1>
++        <div class="card">
++            <h2>Welcome</h2>
++            <p>Please enter your name to begin the quiz</p>
++            <form id="login-form">
++                <div class="form-group">
++                    <label for="student-name">Full Name:</label>
++                    <input type="text" id="student-name" required />
++                </div>
++                <button type="submit" class="btn btn-primary">Start Quiz</button>
++            </form>
++        </div>
++    </div>
++
++    <!-- Quiz Screen -->
++    <div id="quiz-screen" class="screen">
++        <header>
++            <h1>E-Learning Quiz</h1>
++            <div id="student-info">Student: <span id="display-name"></span></div>
++        </header>
++        <div class="card">
++            <div class="quiz-header">
++                <div class="progress-container">
++                    <div id="progress-bar"></div>
++                </div>
++                <div id="question-counter">
++                    Question <span id="current-question">1</span> of
++                    <span id="total-questions">0</span>
++                </div>
++            </div>
++            <div id="question-container">
++                <h2 id="question-text"></h2>
++                <div id="options-container"></div>
++            </div>
++            <div class="button-group">
++                <button id="prev-button" class="btn btn-secondary">Back</button>
++                <button id="mark-button" class="btn btn-secondary">
++                    Mark for Later
++                </button>
++                <button id="next-button" class="btn btn-primary">Next</button>
++            </div>
++        </div>
++    </div>
++
++    <!-- Review Screen -->
++    <div id="review-screen" class="screen">
++        <header>
++            <h1>Review Your Answers</h1>
++            <div id="review-student-info">
++                Student: <span id="review-display-name"></span>
++            </div>
++        </header>
++        <div class="card">
++            <h2>Review your answers before submitting</h2>
++            <div id="marked-questions-container">
++                <h3>Marked Questions:</h3>
++                <ul id="marked-questions-list"></ul>
++            </div>
++            <div id="all-answers-container">
++                <h3>All Questions:</h3>
++                <div id="answers-summary"></div>
++            </div>
++            <div class="button-group">
++                <button id="back-to-quiz" class="btn btn-secondary">
++                    Back to Quiz
++                </button>
++                <button id="submit-quiz" class="btn btn-primary">
++                    Submit Quiz
++                </button>
++            </div>
++        </div>
++    </div>
++
++    <!-- Confirmation Screen -->
++    <div id="confirmation-screen" class="screen">
++        <div class="card">
++            <h2>Quiz Submitted!</h2>
++            <p>Thank you for completing the quiz.</p>
++            <div id="submission-summary"></div>
++            <button id="restart-quiz" class="btn btn-primary">
++                Take Another Quiz
++            </button>
++        </div>
++    </div>
++</div>
++
++<script src="script.js"></script>
++</body>
++
++</html>
+\ No newline at end of file
+Index: demo1/src/main/resources/static/script.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/demo1/src/main/resources/static/script.js b/demo1/src/main/resources/static/script.js
+new file mode 100644
+--- /dev/null	(date 1745041865873)
++++ b/demo1/src/main/resources/static/script.js	(date 1745041865873)
+@@ -0,0 +1,374 @@
++const BASE_URL = 'http://localhost:8080/api/quiz';
++
++// Dữ liệu bài kiểm tra - Ban đầu là mảng rỗng, sẽ được điền từ API
++let quizData = [];
++let attemptId = null; // Lưu ID của lần làm bài
++
++// Trạng thái ứng dụng
++const quizState = {
++    studentName: "",
++    currentQuestionIndex: 0,
++    answers: [],
++    markedQuestions: new Set(),
++
++    getCurrentQuestion() {
++        return quizData[this.currentQuestionIndex];
++    },
++
++    isLastQuestion() {
++        return this.currentQuestionIndex === quizData.length - 1;
++    },
++
++    isFirstQuestion() {
++        return this.currentQuestionIndex === 0;
++    },
++
++    setAnswer(optionIndex) {
++        this.answers[this.currentQuestionIndex] = optionIndex;
++    },
++
++    toggleMarked() {
++        if (this.markedQuestions.has(this.currentQuestionIndex)) {
++            this.markedQuestions.delete(this.currentQuestionIndex);
++        } else {
++            this.markedQuestions.add(this.currentQuestionIndex);
++        }
++    },
++
++    isMarked() {
++        return this.markedQuestions.has(this.currentQuestionIndex);
++    },
++};
++
++// DOM Elements
++const elements = {
++    screens: {
++        login: document.getElementById("login-screen"),
++        quiz: document.getElementById("quiz-screen"),
++        review: document.getElementById("review-screen"),
++        confirmation: document.getElementById("confirmation-screen"),
++    },
++    login: {
++        form: document.getElementById("login-form"),
++        nameInput: document.getElementById("student-name"),
++    },
++    quiz: {
++        displayName: document.getElementById("display-name"),
++        questionCounter: document.getElementById("current-question"),
++        totalQuestions: document.getElementById("total-questions"),
++        questionText: document.getElementById("question-text"),
++        optionsContainer: document.getElementById("options-container"),
++        nextButton: document.getElementById("next-button"),
++        prevButton: document.getElementById("prev-button"),
++        markButton: document.getElementById("mark-button"),
++        progressBar: document.getElementById("progress-bar"),
++    },
++    review: {
++        displayName: document.getElementById("review-display-name"),
++        markedList: document.getElementById("marked-questions-list"),
++        answersSummary: document.getElementById("answers-summary"),
++        backButton: document.getElementById("back-to-quiz"),
++        submitButton: document.getElementById("submit-quiz"),
++    },
++    confirmation: {
++        summary: document.getElementById("submission-summary"),
++        restartButton: document.getElementById("restart-quiz"),
++    },
++};
++
++// Khởi tạo ứng dụng
++function initializeApp() {
++    elements.login.form.addEventListener("submit", handleLoginSubmit);
++    elements.quiz.nextButton.addEventListener("click", handleNextQuestion);
++    elements.quiz.prevButton.addEventListener("click", handlePrevQuestion);
++    elements.quiz.markButton.addEventListener("click", handleMarkQuestion);
++    elements.review.backButton.addEventListener("click", handleBackToQuiz);
++    elements.review.submitButton.addEventListener("click", handleSubmitQuiz);
++    elements.confirmation.restartButton.addEventListener("click", handleRestartQuiz);
++}
++
++// Hiển thị màn hình
++function showScreen(screenId) {
++    Object.values(elements.screens).forEach((screen) => {
++        screen.classList.remove("active");
++    });
++    elements.screens[screenId].classList.add("active");
++}
++
++// Lấy dữ liệu câu hỏi từ API
++async function fetchQuizData() {
++    try {
++        const response = await fetch(`${BASE_URL}/questions`);
++        if (!response.ok) {
++            throw new Error(`Lỗi mạng: ${response.status}`);
++        }
++        quizData = await response.json();
++        console.log('Dữ liệu câu hỏi:', quizData);
++        elements.quiz.totalQuestions.textContent = quizData.length;
++        quizState.answers = Array(quizData.length).fill(null);
++    } catch (error) {
++        console.error('Lỗi khi lấy câu hỏi:', error);
++        alert('Không thể tải câu hỏi. Vui lòng thử lại.');
++    }
++}
++
++// Bắt đầu bài kiểm tra
++async function startQuiz(studentName) {
++    try {
++        const response = await fetch(`${BASE_URL}/start`, {
++            method: 'POST',
++            headers: {
++                'Content-Type': 'application/x-www-form-urlencoded'
++            },
++            body: `studentName=${encodeURIComponent(studentName)}`
++        });
++        if (!response.ok) {
++            throw new Error(`Lỗi mạng: ${response.status}`);
++        }
++        const attempt = await response.json();
++        console.log('Bắt đầu bài kiểm tra:', attempt);
++        attemptId = attempt.id; // Lưu attemptId
++        return attempt;
++    } catch (error) {
++        console.error('Lỗi khi bắt đầu bài kiểm tra:', error);
++        alert(`Lỗi: ${error.message}`);
++    }
++}
++
++// Hiển thị câu hỏi
++function displayQuestion() {
++    if (!quizData || quizData.length === 0) {
++        console.error('Không có dữ liệu câu hỏi');
++        return;
++    }
++
++    const question = quizState.getCurrentQuestion();
++    if (!question) {
++        console.error('Câu hỏi không tồn tại tại chỉ số:', quizState.currentQuestionIndex);
++        return;
++    }
++
++    elements.quiz.questionText.textContent = question.text || 'Không có nội dung câu hỏi';
++    elements.quiz.questionCounter.textContent = quizState.currentQuestionIndex + 1;
++
++    elements.quiz.optionsContainer.innerHTML = '';
++    const options = [question.optionA, question.optionB, question.optionC, question.optionD];
++    options.forEach((option, index) => {
++        const optionElement = document.createElement('button');
++        optionElement.classList.add('option');
++        optionElement.textContent = option || `Lựa chọn ${index + 1}`;
++        optionElement.dataset.index = index;
++        if (quizState.answers[quizState.currentQuestionIndex] === index) {
++            optionElement.classList.add('selected');
++        }
++        optionElement.addEventListener('click', () => {
++            document.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
++            optionElement.classList.add('selected');
++            quizState.setAnswer(index);
++        });
++        elements.quiz.optionsContainer.appendChild(optionElement);
++    });
++
++    const progress = ((quizState.currentQuestionIndex + 1) / quizData.length) * 100;
++    elements.quiz.progressBar.style.width = `${progress}%`;
++
++    elements.quiz.prevButton.disabled = quizState.isFirstQuestion();
++    elements.quiz.nextButton.textContent = quizState.isLastQuestion() ? 'Xem lại' : 'Câu tiếp theo';
++    updateMarkButtonText();
++}
++
++// Xử lý gửi biểu mẫu đăng nhập
++async function handleLoginSubmit(event) {
++    event.preventDefault();
++    const name = elements.login.nameInput.value.trim();
++    if (!name) {
++        alert('Vui lòng nhập tên học sinh');
++        return;
++    }
++
++    quizState.studentName = name;
++    elements.quiz.displayName.textContent = name;
++    elements.review.displayName.textContent = name;
++
++    await startQuiz(name);
++    await fetchQuizData();
++    showScreen('quiz');
++    displayQuestion();
++}
++
++// Xử lý câu tiếp theo
++function handleNextQuestion() {
++    const selectedOption = document.querySelector('.option.selected');
++    if (selectedOption) {
++        const optionIndex = parseInt(selectedOption.dataset.index);
++        quizState.setAnswer(optionIndex);
++    }
++
++    if (quizState.isLastQuestion()) {
++        prepareReviewScreen();
++        showScreen('review');
++    } else {
++        quizState.currentQuestionIndex++;
++        displayQuestion();
++    }
++}
++
++// Xử lý câu trước đó
++function handlePrevQuestion() {
++    const selectedOption = document.querySelector('.option.selected');
++    if (selectedOption) {
++        const optionIndex = parseInt(selectedOption.dataset.index);
++        quizState.setAnswer(optionIndex);
++    }
++
++    if (!quizState.isFirstQuestion()) {
++        quizState.currentQuestionIndex--;
++        displayQuestion();
++    }
++}
++
++// Xử lý đánh dấu câu hỏi
++function handleMarkQuestion() {
++    quizState.toggleMarked();
++    updateMarkButtonText();
++}
++
++// Cập nhật văn bản nút đánh dấu
++function updateMarkButtonText() {
++    elements.quiz.markButton.textContent = quizState.isMarked() ? 'Bỏ đánh dấu' : 'Đánh dấu';
++}
++
++// Chuẩn bị màn hình xem lại
++function prepareReviewScreen() {
++    elements.review.markedList.innerHTML = '';
++    elements.review.answersSummary.innerHTML = '';
++
++    if (quizState.markedQuestions.size === 0) {
++        elements.review.markedList.innerHTML = '<li>Không có câu hỏi nào được đánh dấu</li>';
++    } else {
++        Array.from(quizState.markedQuestions)
++            .sort((a, b) => a - b)
++            .forEach(index => {
++                const li = document.createElement('li');
++                li.textContent = `Câu ${index + 1}: ${quizData[index].text}`;
++                li.addEventListener('click', () => {
++                    quizState.currentQuestionIndex = index;
++                    displayQuestion();
++                    showScreen('quiz');
++                });
++                elements.review.markedList.appendChild(li);
++            });
++    }
++
++    quizData.forEach((question, index) => {
++        const answerDiv = document.createElement('div');
++        answerDiv.classList.add('question-review');
++        const heading = document.createElement('h4');
++        heading.textContent = `Câu ${index + 1}: ${question.text}`;
++        if (quizState.markedQuestions.has(index)) {
++            const markedBadge = document.createElement('span');
++            markedBadge.classList.add('marked-badge');
++            markedBadge.textContent = 'Đã đánh dấu';
++            heading.appendChild(markedBadge);
++        }
++        answerDiv.appendChild(heading);
++
++        const answerText = document.createElement('p');
++        const answerIndex = quizState.answers[index];
++        const options = [question.optionA, question.optionB, question.optionC, question.optionD];
++        if (answerIndex !== null && answerIndex !== undefined) {
++            answerText.textContent = `Câu trả lời của bạn: ${options[answerIndex]}`;
++        } else {
++            answerText.textContent = 'Chưa trả lời';
++            answerText.style.color = '#e74c3c';
++        }
++        answerDiv.appendChild(answerText);
++
++        answerDiv.addEventListener('click', () => {
++            quizState.currentQuestionIndex = index;
++            displayQuestion();
++            showScreen('quiz');
++        });
++
++        elements.review.answersSummary.appendChild(answerDiv);
++    });
++}
++
++// Xử lý gửi bài kiểm tra
++async function handleSubmitQuiz() {
++    const selectedOption = document.querySelector('.option.selected');
++    if (selectedOption) {
++        const optionIndex = parseInt(selectedOption.dataset.index);
++        quizState.setAnswer(optionIndex);
++    }
++
++    // Tính điểm
++    let correctCount = 0;
++    let answeredCount = 0;
++    quizData.forEach((question, index) => {
++        const answerIndex = quizState.answers[index];
++        if (answerIndex !== null && answerIndex !== undefined) {
++            answeredCount++;
++            const selectedOption = ['A', 'B', 'C', 'D'][answerIndex];
++            if (selectedOption === question.correctAnswer) {
++                correctCount++;
++            }
++        }
++    });
++
++    const totalQuestions = quizData.length;
++    const scorePercentage = totalQuestions > 0 ? (correctCount / totalQuestions) * 100 : 0;
++
++    // Chuẩn bị dữ liệu câu trả lời gửi lên API
++    const answers = quizData.map((question, index) => ({
++        question: { id: question.id },
++        selectedOption: quizState.answers[index] !== null ? ['A', 'B', 'C', 'D'][quizState.answers[index]] : null
++    }));
++
++    if (!attemptId) {
++        alert('Không tìm thấy ID lần làm bài. Vui lòng bắt đầu lại.');
++        return;
++    }
++
++    try {
++        const response = await fetch(`${BASE_URL}/submit/${attemptId}`, {
++            method: 'POST',
++            headers: { 'Content-Type': 'application/json' },
++            body: JSON.stringify(answers)
++        });
++        if (!response.ok) {
++            throw new Error(`Lỗi mạng: ${response.status}`);
++        }
++        const attempt = await response.json();
++        elements.confirmation.summary.innerHTML = `
++            <p><strong>Học sinh:</strong> ${quizState.studentName}</p>
++            <p><strong>Số câu đúng:</strong> ${correctCount}/${totalQuestions}</p>
++            <p><strong>Số câu đã trả lời:</strong> ${answeredCount}/${totalQuestions}</p>
++            <p><strong>Điểm số:</strong> ${scorePercentage.toFixed(1)}%</p>
++            <p><strong>Thời gian kết thúc:</strong> ${attempt.endTime}</p>
++        `;
++        showScreen('confirmation');
++    } catch (error) {
++        console.error('Lỗi khi gửi bài kiểm tra:', error);
++        alert(`Lỗi: ${error.message}`);
++    }
++}
++
++// Xử lý quay lại
++function handleBackToQuiz() {
++    showScreen('quiz');
++    displayQuestion();
++}
++
++// Xử lý bắt đầu lại
++function handleRestartQuiz() {
++    quizState.currentQuestionIndex = 0;
++    quizState.answers = Array(quizData.length).fill(null);
++    quizState.markedQuestions = new Set();
++    attemptId = null;
++    showScreen('login');
++    elements.login.nameInput.value = '';
++}
++
++// Khởi tạo ứng dụng
++document.addEventListener('DOMContentLoaded', initializeApp);
+\ No newline at end of file
+Index: demo1/src/main/java/example/elearning/entity/Student.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/demo1/src/main/java/example/elearning/entity/Student.java b/demo1/src/main/java/example/elearning/entity/Student.java
+new file mode 100644
+--- /dev/null	(date 1744972820523)
++++ b/demo1/src/main/java/example/elearning/entity/Student.java	(date 1744972820523)
+@@ -0,0 +1,18 @@
++package example.elearning.entity;
++
++import jakarta.persistence.*;
++import lombok.Getter;
++import lombok.Setter;
++
++@Entity
++@Table(name = "Students")
++@Getter
++@Setter
++public class Student {
++    @Id
++    @GeneratedValue(strategy = GenerationType.IDENTITY)
++    private Long id;
++
++    @Column(nullable = false)
++    private String name;
++}
+\ No newline at end of file
+Index: demo1/src/main/java/example/elearning/controller/QuizController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/demo1/src/main/java/example/elearning/controller/QuizController.java b/demo1/src/main/java/example/elearning/controller/QuizController.java
+new file mode 100644
+--- /dev/null	(date 1745027785875)
++++ b/demo1/src/main/java/example/elearning/controller/QuizController.java	(date 1745027785875)
+@@ -0,0 +1,33 @@
++package example.elearning.controller;
++
++import example.elearning.entity.Attempt;
++import example.elearning.entity.Question;
++import example.elearning.entity.Answer;
++import example.elearning.service.QuizService;
++import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.web.bind.annotation.*;
++
++import java.util.List;
++
++@RestController
++@RequestMapping("/api/quiz")
++public class QuizController {
++
++    @Autowired
++    private QuizService quizService;
++
++    @PostMapping("/start")
++    public Attempt startQuiz(@RequestParam String studentName) {
++        return quizService.createStudentAndAttempt(studentName);
++    }
++
++    @GetMapping("/questions")
++    public List<Question> getQuestions() {
++        return quizService.getQuestions();
++    }
++
++    @PostMapping("/submit/{attemptId}")
++    public Attempt submitQuiz(@PathVariable Long attemptId, @RequestBody List<Answer> answers) {
++        return quizService.submitQuiz(attemptId, answers);
++    }
++}
+\ No newline at end of file
+Index: demo1/src/main/java/example/elearning/Demo1Application.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/demo1/src/main/java/example/elearning/Demo1Application.java b/demo1/src/main/java/example/elearning/Demo1Application.java
+new file mode 100644
+--- /dev/null	(date 1744787960893)
++++ b/demo1/src/main/java/example/elearning/Demo1Application.java	(date 1744787960893)
+@@ -0,0 +1,12 @@
++package example.elearning;
++
++import org.springframework.boot.SpringApplication;
++import org.springframework.boot.autoconfigure.SpringBootApplication;
++
++@SpringBootApplication
++public class Demo1Application {
++
++    public static void main(String[] args) {
++        SpringApplication.run(Demo1Application.class, args);
++    }
++}
+Index: demo1/src/main/java/example/elearning/entity/Question.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/demo1/src/main/java/example/elearning/entity/Question.java b/demo1/src/main/java/example/elearning/entity/Question.java
+new file mode 100644
+--- /dev/null	(date 1745001924031)
++++ b/demo1/src/main/java/example/elearning/entity/Question.java	(date 1745001924031)
+@@ -0,0 +1,44 @@
++package example.elearning.entity;
++
++import jakarta.persistence.*;
++import jakarta.validation.constraints.Size;
++import lombok.Getter;
++import lombok.Setter;
++import org.hibernate.annotations.Nationalized;
++
++@Entity
++@Table(name = "Questions")
++@Getter
++@Setter
++public class Question {
++    @Id
++    @GeneratedValue(strategy = GenerationType.IDENTITY)
++    private Long id;
++
++    @Column(name = "question_text", nullable = false)
++    private String text;
++
++    @Column(name = "correct_answer", nullable = false)
++    private String correctAnswer;
++
++    @Size(max = 50)
++    @Nationalized
++    @Column(name = "option_a", length = 50)
++    private String optionA;
++
++    @Size(max = 50)
++    @Nationalized
++    @Column(name = "option_b", length = 50)
++    private String optionB;
++
++    @Size(max = 50)
++    @Nationalized
++    @Column(name = "option_c", length = 50)
++    private String optionC;
++
++    @Size(max = 50)
++    @Nationalized
++    @Column(name = "option_d", length = 50)
++    private String optionD;
++
++}
+\ No newline at end of file
+Index: quoc-tutorial/src/main/resources/static/js/index.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/quoc-tutorial/src/main/resources/static/js/index.js b/quoc-tutorial/src/main/resources/static/js/index.js
+new file mode 100644
+--- /dev/null	(date 1744602804289)
++++ b/quoc-tutorial/src/main/resources/static/js/index.js	(date 1744602804289)
+@@ -0,0 +1,401 @@
++// Sample quiz data - In a real application, this would come from a Spring Boot REST API
++const quizData = [
++    {
++        id: 1,
++        question:
++            "What annotation is used to define a RESTful controller in Spring Boot?",
++        options: [
++            "@Controller",
++            "@RestController",
++            "@APIController",
++            "@WebController",
++        ],
++        correctAnswer: 1,
++    },
++    {
++        id: 2,
++        question:
++            "Which dependency management tool is commonly used in Spring Boot applications?",
++        options: ["npm", "yarn", "Maven", "webpack"],
++        correctAnswer: 2,
++    },
++    {
++        id: 3,
++        question: "What is the default embedded server in Spring Boot?",
++        options: ["Jetty", "Tomcat", "Undertow", "GlassFish"],
++        correctAnswer: 1,
++    },
++    {
++        id: 4,
++        question: "Which annotation is used for dependency injection in Spring?",
++        options: ["@Inject", "@DI", "@Autowired", "@Dependency"],
++        correctAnswer: 2,
++    },
++    {
++        id: 5,
++        question:
++            "What is the purpose of application.properties file in Spring Boot?",
++        options: [
++            "To store Java classes",
++            "To configure application settings",
++            "To define REST endpoints",
++            "To write SQL queries",
++        ],
++        correctAnswer: 1,
++    },
++];
++
++// Application state - Similar to a Java class with instance variables
++const quizState = {
++    studentName: "",
++    currentQuestionIndex: 0,
++    answers: Array(quizData.length).fill(null),
++    markedQuestions: new Set(),
++
++    // Similar to Java getters
++    getCurrentQuestion() {
++        return quizData[this.currentQuestionIndex];
++    },
++
++    isLastQuestion() {
++        return this.currentQuestionIndex === quizData.length - 1;
++    },
++
++    isFirstQuestion() {
++        return this.currentQuestionIndex === 0;
++    },
++
++    // Similar to Java setters
++    setAnswer(optionIndex) {
++        this.answers[this.currentQuestionIndex] = optionIndex;
++    },
++
++    toggleMarked() {
++        if (this.markedQuestions.has(this.currentQuestionIndex)) {
++            this.markedQuestions.delete(this.currentQuestionIndex);
++        } else {
++            this.markedQuestions.add(this.currentQuestionIndex);
++        }
++    },
++
++    isMarked() {
++        return this.markedQuestions.has(this.currentQuestionIndex);
++    },
++};
++
++// DOM Elements - Similar to how you'd reference elements in Thymeleaf templates
++const elements = {
++    screens: {
++        login: document.getElementById("login-screen"),
++        quiz: document.getElementById("quiz-screen"),
++        review: document.getElementById("review-screen"),
++        confirmation: document.getElementById("confirmation-screen"),
++    },
++    login: {
++        form: document.getElementById("login-form"),
++        nameInput: document.getElementById("student-name"),
++    },
++    quiz: {
++        displayName: document.getElementById("display-name"),
++        questionCounter: document.getElementById("current-question"),
++        totalQuestions: document.getElementById("total-questions"),
++        questionText: document.getElementById("question-text"),
++        optionsContainer: document.getElementById("options-container"),
++        nextButton: document.getElementById("next-button"),
++        prevButton: document.getElementById("prev-button"),
++        markButton: document.getElementById("mark-button"),
++        progressBar: document.getElementById("progress-bar"),
++    },
++    review: {
++        displayName: document.getElementById("review-display-name"),
++        markedList: document.getElementById("marked-questions-list"),
++        answersSummary: document.getElementById("answers-summary"),
++        backButton: document.getElementById("back-to-quiz"),
++        submitButton: document.getElementById("submit-quiz"),
++    },
++    confirmation: {
++        summary: document.getElementById("submission-summary"),
++        restartButton: document.getElementById("restart-quiz"),
++    },
++};
++
++// Initialize the application - Similar to @PostConstruct in Spring
++function initializeApp() {
++    // Set up event listeners - Similar to Controller methods in Spring MVC
++    elements.login.form.addEventListener("submit", handleLoginSubmit);
++    elements.quiz.nextButton.addEventListener("click", handleNextQuestion);
++    elements.quiz.prevButton.addEventListener("click", handlePrevQuestion);
++    elements.quiz.markButton.addEventListener("click", handleMarkQuestion);
++    elements.review.backButton.addEventListener("click", handleBackToQuiz);
++    elements.review.submitButton.addEventListener("click", handleSubmitQuiz);
++    elements.confirmation.restartButton.addEventListener(
++        "click",
++        handleRestartQuiz
++    );
++
++    // Set total questions count
++    elements.quiz.totalQuestions.textContent = quizData.length;
++    console.log(elements.quiz.prevButton);
++}
++
++// Navigation functions - Similar to redirects in Spring MVC
++function showScreen(screenId) {
++    // Hide all screens
++    Object.values(elements.screens).forEach((screen) => {
++        screen.classList.remove("active");
++    });
++
++    // Show the requested screen
++    elements.screens[screenId].classList.add("active");
++}
++
++// Event Handlers - Similar to @RequestMapping methods in Spring Controllers
++function handleLoginSubmit(event) {
++    event.preventDefault();
++
++    // Get and validate student name
++    const name = elements.login.nameInput.value.trim();
++    if (!name) return;
++
++    // Update state and UI
++    quizState.studentName = name;
++    elements.quiz.displayName.textContent = name;
++    elements.review.displayName.textContent = name;
++
++    // Navigate to quiz screen
++    showScreen("quiz");
++
++    // Load first question
++    loadQuestion();
++}
++
++function handleNextQuestion() {
++    // Save the current answer if one is selected
++    const selectedOption = document.querySelector(".option.selected");
++    if (selectedOption) {
++        const optionIndex = parseInt(selectedOption.dataset.index);
++        quizState.setAnswer(optionIndex);
++    }
++
++    // Check if we're at the last question
++    if (quizState.isLastQuestion()) {
++        prepareReviewScreen();
++        showScreen("review");
++    } else {
++        // Move to next question
++        quizState.currentQuestionIndex++;
++        loadQuestion();
++    }
++}
++
++function handlePrevQuestion() {
++    console.log("start triggering");
++    // Save the current answer if one is selected
++    const selectedOption = document.querySelector(".option.selected");
++    console.log("start triggering1");
++    if (selectedOption) {
++        const optionIndex = parseInt(selectedOption.dataset.index);
++        quizState.setAnswer(optionIndex);
++        console.log("start triggering2");
++    }
++    console.log("start triggering3");
++    // Move to next question
++    quizState.currentQuestionIndex--;
++    loadQuestion();
++    console.log("start triggering 4");
++}
++
++function handleMarkQuestion() {
++    quizState.toggleMarked();
++    updateMarkButtonText();
++}
++
++function handleBackToQuiz() {
++    showScreen("quiz");
++}
++
++function handleSubmitQuiz() {
++    prepareConfirmationScreen();
++    showScreen("confirmation");
++}
++
++function handleRestartQuiz() {
++    // Reset quiz state
++    quizState.currentQuestionIndex = 0;
++    quizState.answers = Array(quizData.length).fill(null);
++    quizState.markedQuestions = new Set();
++
++    // Go back to login screen
++    showScreen("login");
++    elements.login.nameInput.value = "";
++}
++
++// UI Update Functions - Similar to updating model attributes in Spring MVC
++function loadQuestion() {
++    // Check if we're at the last question
++    if (quizState.isFirstQuestion()) {
++        elements.quiz.prevButton.setAttribute("disabled", true);
++    } else {
++        elements.quiz.prevButton.removeAttribute("disabled");
++    }
++
++    const question = quizState.getCurrentQuestion();
++    const currentIndex = quizState.currentQuestionIndex;
++
++    // Update question text and counter
++    elements.quiz.questionText.textContent = question.question;
++    elements.quiz.questionCounter.textContent = currentIndex + 1;
++
++    // Update progress bar
++    const progressPercentage = ((currentIndex + 1) / quizData.length) * 100;
++    elements.quiz.progressBar.style.width = `${progressPercentage}%`;
++
++    // Update next button text on last question
++    elements.quiz.nextButton.textContent = quizState.isLastQuestion()
++        ? "Review Answers"
++        : "Next Question";
++
++    // Update mark button text
++    updateMarkButtonText();
++
++    // Clear and rebuild options
++    elements.quiz.optionsContainer.innerHTML = "";
++    question.options.forEach((option, index) => {
++        const optionElement = document.createElement("button");
++        optionElement.classList.add("option");
++        optionElement.textContent = option;
++        optionElement.dataset.index = index;
++
++        // Check if this option was previously selected
++        if (quizState.answers[currentIndex] === index) {
++            optionElement.classList.add("selected");
++        }
++
++        optionElement.addEventListener("click", () => {
++            // Deselect all options
++            document.querySelectorAll(".option").forEach((opt) => {
++                opt.classList.remove("selected");
++            });
++
++            // Select this option
++            optionElement.classList.add("selected");
++        });
++
++        elements.quiz.optionsContainer.appendChild(optionElement);
++    });
++}
++
++function updateMarkButtonText() {
++    elements.quiz.markButton.textContent = quizState.isMarked()
++        ? "Unmark Question"
++        : "Mark for Later";
++}
++
++function prepareReviewScreen() {
++    // Clear previous content
++    elements.review.markedList.innerHTML = "";
++    elements.review.answersSummary.innerHTML = "";
++
++    // Populate marked questions list
++    if (quizState.markedQuestions.size === 0) {
++        elements.review.markedList.innerHTML =
++            "<li>No questions marked for review</li>";
++    } else {
++        Array.from(quizState.markedQuestions)
++            .sort((a, b) => a - b)
++            .forEach((index) => {
++                const li = document.createElement("li");
++                li.textContent = `Question ${index + 1}: ${quizData[index].question}`;
++                li.addEventListener("click", () => {
++                    quizState.currentQuestionIndex = index;
++                    loadQuestion();
++                    showScreen("quiz");
++                });
++                elements.review.markedList.appendChild(li);
++            });
++    }
++
++    // Populate all answers summary
++    quizData.forEach((question, index) => {
++        const answerDiv = document.createElement("div");
++        answerDiv.classList.add("question-review");
++
++        const heading = document.createElement("h4");
++        heading.textContent = `Question ${index + 1}: ${question.question}`;
++
++        if (quizState.markedQuestions.has(index)) {
++            const markedBadge = document.createElement("span");
++            markedBadge.classList.add("marked-badge");
++            markedBadge.textContent = "Marked";
++            heading.appendChild(markedBadge);
++        }
++
++        answerDiv.appendChild(heading);
++
++        const answerText = document.createElement("p");
++        const answerIndex = quizState.answers[index];
++
++        if (answerIndex !== null) {
++            answerText.textContent = `Your answer: ${question.options[answerIndex]}`;
++        } else {
++            answerText.textContent = "Not answered";
++            answerText.style.color = "#e74c3c";
++        }
++
++        answerDiv.appendChild(answerText);
++
++        // Add click handler to go back to this question
++        answerDiv.addEventListener("click", () => {
++            quizState.currentQuestionIndex = index;
++            loadQuestion();
++            showScreen("quiz");
++        });
++
++        elements.review.answersSummary.appendChild(answerDiv);
++    });
++}
++
++function prepareConfirmationScreen() {
++    // Calculate results
++    let answeredCount = 0;
++    let correctCount = 0;
++
++    quizState.answers.forEach((answer, index) => {
++        if (answer !== null) {
++            answeredCount++;
++            if (answer === quizData[index].correctAnswer) {
++                correctCount++;
++            }
++        }
++    });
++
++    // Create summary
++    const summary = document.createElement("div");
++
++    const nameP = document.createElement("p");
++    nameP.textContent = `Name: ${quizState.studentName}`;
++    summary.appendChild(nameP);
++
++    const statsP = document.createElement("p");
++    statsP.textContent = `Questions Answered: ${answeredCount} of ${quizData.length}`;
++    summary.appendChild(statsP);
++
++    const scoreP = document.createElement("p");
++    scoreP.textContent = `Correct Answers: ${correctCount} of ${quizData.length}`;
++    summary.appendChild(scoreP);
++
++    const percentP = document.createElement("p");
++    const percentage = Math.round((correctCount / quizData.length) * 100);
++    percentP.textContent = `Score: ${percentage}%`;
++    percentP.style.fontWeight = "bold";
++    percentP.style.fontSize = "1.2em";
++    percentP.style.color = percentage >= 70 ? "#27ae60" : "#e74c3c";
++    summary.appendChild(percentP);
++
++    // Add to DOM
++    elements.confirmation.summary.innerHTML = "";
++    elements.confirmation.summary.appendChild(summary);
++}
++
++// Initialize the application when the DOM is fully loaded
++document.addEventListener("DOMContentLoaded", initializeApp);
+\ No newline at end of file
+Index: demo1/src/main/java/example/elearning/config/WebConfig.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/demo1/src/main/java/example/elearning/config/WebConfig.java b/demo1/src/main/java/example/elearning/config/WebConfig.java
+new file mode 100644
+--- /dev/null	(date 1744971728032)
++++ b/demo1/src/main/java/example/elearning/config/WebConfig.java	(date 1744971728032)
+@@ -0,0 +1,15 @@
++package example.elearning.config;
++
++import org.springframework.context.annotation.Configuration;
++import org.springframework.web.servlet.config.annotation.CorsRegistry;
++import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
++
++@Configuration
++public class WebConfig implements WebMvcConfigurer {
++    @Override
++    public void addCorsMappings(CorsRegistry registry) {
++        registry.addMapping("/**")
++                .allowedOrigins("*")
++                .allowedMethods("GET", "POST", "PUT", "DELETE");
++    }
++}
+\ No newline at end of file
+Index: quoc-tutorial/src/main/resources/static/css/index.css
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/quoc-tutorial/src/main/resources/static/css/index.css b/quoc-tutorial/src/main/resources/static/css/index.css
+new file mode 100644
+--- /dev/null	(date 1744602586328)
++++ b/quoc-tutorial/src/main/resources/static/css/index.css	(date 1744602586328)
+@@ -0,0 +1,245 @@
++/* Base Styles - Similar to Bootstrap's reset */
++* {
++    margin: 0;
++    padding: 0;
++    box-sizing: border-box;
++}
++
++body {
++    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
++    line-height: 1.6;
++    color: #333;
++    background-color: #f5f7fa;
++}
++
++.container {
++    max-width: 800px;
++    margin: 0 auto;
++    padding: 20px;
++}
++
++/* Card Component - Similar to Spring Boot Thymeleaf templates with Bootstrap */
++.card {
++    background: white;
++    border-radius: 8px;
++    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
++    padding: 30px;
++    margin-bottom: 20px;
++}
++
++/* Typography */
++h1 {
++    color: #2c3e50;
++    margin-bottom: 20px;
++    text-align: center;
++}
++
++h2 {
++    color: #3498db;
++    margin-bottom: 15px;
++}
++
++h3 {
++    color: #2c3e50;
++    margin: 15px 0 10px;
++}
++
++p {
++    margin-bottom: 15px;
++}
++
++/* Form Elements */
++.form-group {
++    margin-bottom: 20px;
++}
++
++label {
++    display: block;
++    margin-bottom: 5px;
++    font-weight: 600;
++}
++
++input[type="text"] {
++    width: 100%;
++    padding: 10px;
++    border: 1px solid #ddd;
++    border-radius: 4px;
++    font-size: 16px;
++}
++
++/* Buttons - Similar to Bootstrap buttons */
++.btn {
++    display: inline-block;
++    padding: 10px 20px;
++    border: none;
++    border-radius: 4px;
++    cursor: pointer;
++    font-size: 16px;
++    font-weight: 600;
++    text-align: center;
++    transition: background-color 0.3s, transform 0.1s;
++}
++
++.btn:active {
++    transform: translateY(1px);
++}
++
++.btn-primary {
++    background-color: #3498db;
++    color: white;
++}
++
++.btn-primary:hover {
++    background-color: #2980b9;
++}
++
++.btn-secondary {
++    background-color: #95a5a6;
++    color: white;
++}
++
++.btn-secondary:hover {
++    background-color: #7f8c8d;
++}
++
++.button-group {
++    display: flex;
++    justify-content: space-between;
++    margin-top: 20px;
++}
++
++/* Screen Management */
++.screen {
++    display: none;
++}
++
++.screen.active {
++    display: block;
++}
++
++/* Header */
++header {
++    display: flex;
++    justify-content: space-between;
++    align-items: center;
++    margin-bottom: 20px;
++}
++
++#student-info,
++#review-student-info {
++    font-weight: 600;
++    color: #3498db;
++}
++
++/* Quiz Specific Styles */
++.quiz-header {
++    display: flex;
++    flex-direction: column;
++    margin-bottom: 20px;
++}
++
++.progress-container {
++    width: 100%;
++    height: 8px;
++    background-color: #ecf0f1;
++    border-radius: 4px;
++    margin-bottom: 10px;
++}
++
++#progress-bar {
++    height: 100%;
++    background-color: #3498db;
++    border-radius: 4px;
++    width: 0%;
++    transition: width 0.3s ease;
++}
++
++#question-counter {
++    text-align: right;
++    font-size: 14px;
++    color: #7f8c8d;
++}
++
++#question-text {
++    margin-bottom: 20px;
++}
++
++/* Options */
++.option {
++    display: block;
++    width: 100%;
++    padding: 12px 15px;
++    margin-bottom: 10px;
++    background-color: #f8f9fa;
++    border: 1px solid #ddd;
++    border-radius: 4px;
++    cursor: pointer;
++    transition: background-color 0.2s;
++    text-align: left;
++}
++
++.option:hover {
++    background-color: #e9ecef;
++}
++
++.option.selected {
++    background-color: #d6eaf8;
++    border-color: #3498db;
++}
++
++/* Review Screen */
++#marked-questions-container,
++#all-answers-container {
++    margin-bottom: 20px;
++}
++
++#marked-questions-list {
++    list-style-type: none;
++}
++
++#marked-questions-list li {
++    padding: 8px 0;
++    border-bottom: 1px solid #ecf0f1;
++}
++
++.question-review {
++    padding: 15px;
++    margin-bottom: 15px;
++    border-radius: 4px;
++    background-color: #f8f9fa;
++}
++
++.question-review h4 {
++    margin-bottom: 10px;
++    color: #2c3e50;
++}
++
++.marked-badge {
++    display: inline-block;
++    background-color: #f39c12;
++    color: white;
++    font-size: 12px;
++    padding: 3px 8px;
++    border-radius: 10px;
++    margin-left: 10px;
++}
++
++/* Responsive Design */
++@media (max-width: 600px) {
++    .container {
++        padding: 10px;
++    }
++
++    .card {
++        padding: 20px;
++    }
++
++    .button-group {
++        flex-direction: column;
++        gap: 10px;
++    }
++
++    .btn {
++        width: 100%;
++    }
++}
+\ No newline at end of file
+Index: quoc-tutorial/src/main/resources/static/js/data/data.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/quoc-tutorial/src/main/resources/static/js/data/data.js b/quoc-tutorial/src/main/resources/static/js/data/data.js
+new file mode 100644
+--- /dev/null	(date 1744602994977)
++++ b/quoc-tutorial/src/main/resources/static/js/data/data.js	(date 1744602994977)
+@@ -0,0 +1,46 @@
++// Sample quiz data - In a real application, this would come from a Spring Boot REST API
++const quizData = [
++    {
++        id: 1,
++        question:
++            "What annotation is used to define a RESTful controller in Spring Boot?",
++        options: [
++            "@Controller",
++            "@RestController",
++            "@APIController",
++            "@WebController",
++        ],
++        correctAnswer: 1,
++    },
++    {
++        id: 2,
++        question:
++            "Which dependency management tool is commonly used in Spring Boot applications?",
++        options: ["npm", "yarn", "Maven", "webpack"],
++        correctAnswer: 2,
++    },
++    {
++        id: 3,
++        question: "What is the default embedded server in Spring Boot?",
++        options: ["Jetty", "Tomcat", "Undertow", "GlassFish"],
++        correctAnswer: 1,
++    },
++    {
++        id: 4,
++        question: "Which annotation is used for dependency injection in Spring?",
++        options: ["@Inject", "@DI", "@Autowired", "@Dependency"],
++        correctAnswer: 2,
++    },
++    {
++        id: 5,
++        question:
++            "What is the purpose of application.properties file in Spring Boot?",
++        options: [
++            "To store Java classes",
++            "To configure application settings",
++            "To define REST endpoints",
++            "To write SQL queries",
++        ],
++        correctAnswer: 1,
++    },
++];
+Index: quoc-tutorial/src/main/resources/static/js/state/quizstate.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/quoc-tutorial/src/main/resources/static/js/state/quizstate.js b/quoc-tutorial/src/main/resources/static/js/state/quizstate.js
+new file mode 100644
+--- /dev/null	(date 1744603029341)
++++ b/quoc-tutorial/src/main/resources/static/js/state/quizstate.js	(date 1744603029341)
+@@ -0,0 +1,37 @@
++/ Application state - Similar to a Java class with instance variables
++const quizState = {
++    studentName: "",
++    currentQuestionIndex: 0,
++    answers: Array(quizData.length).fill(null),
++    markedQuestions: new Set(),
++
++    // Similar to Java getters
++    getCurrentQuestion() {
++        return quizData[this.currentQuestionIndex];
++    },
++
++    isLastQuestion() {
++        return this.currentQuestionIndex === quizData.length - 1;
++    },
++
++    isFirstQuestion() {
++        return this.currentQuestionIndex === 0;
++    },
++
++    // Similar to Java setters
++    setAnswer(optionIndex) {
++        this.answers[this.currentQuestionIndex] = optionIndex;
++    },
++
++    toggleMarked() {
++        if (this.markedQuestions.has(this.currentQuestionIndex)) {
++            this.markedQuestions.delete(this.currentQuestionIndex);
++        } else {
++            this.markedQuestions.add(this.currentQuestionIndex);
++        }
++    },
++
++    isMarked() {
++        return this.markedQuestions.has(this.currentQuestionIndex);
++    },
++};
+Index: quoc-tutorial/src/main/resources/static/js/ui/elements.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/quoc-tutorial/src/main/resources/static/js/ui/elements.js b/quoc-tutorial/src/main/resources/static/js/ui/elements.js
+new file mode 100644
+--- /dev/null	(date 1744603058631)
++++ b/quoc-tutorial/src/main/resources/static/js/ui/elements.js	(date 1744603058631)
+@@ -0,0 +1,36 @@
++
++// DOM Elements - Similar to how you'd reference elements in Thymeleaf templates
++const elements = {
++    screens: {
++        login: document.getElementById("login-screen"),
++        quiz: document.getElementById("quiz-screen"),
++        review: document.getElementById("review-screen"),
++        confirmation: document.getElementById("confirmation-screen"),
++    },
++    login: {
++        form: document.getElementById("login-form"),
++        nameInput: document.getElementById("student-name"),
++    },
++    quiz: {
++        displayName: document.getElementById("display-name"),
++        questionCounter: document.getElementById("current-question"),
++        totalQuestions: document.getElementById("total-questions"),
++        questionText: document.getElementById("question-text"),
++        optionsContainer: document.getElementById("options-container"),
++        nextButton: document.getElementById("next-button"),
++        prevButton: document.getElementById("prev-button"),
++        markButton: document.getElementById("mark-button"),
++        progressBar: document.getElementById("progress-bar"),
++    },
++    review: {
++        displayName: document.getElementById("review-display-name"),
++        markedList: document.getElementById("marked-questions-list"),
++        answersSummary: document.getElementById("answers-summary"),
++        backButton: document.getElementById("back-to-quiz"),
++        submitButton: document.getElementById("submit-quiz"),
++    },
++    confirmation: {
++        summary: document.getElementById("submission-summary"),
++        restartButton: document.getElementById("restart-quiz"),
++    },
++};
+Index: quoc-tutorial/src/main/resources/static/js/ui/ui.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/quoc-tutorial/src/main/resources/static/js/ui/ui.js b/quoc-tutorial/src/main/resources/static/js/ui/ui.js
+new file mode 100644
+--- /dev/null	(date 1744605692528)
++++ b/quoc-tutorial/src/main/resources/static/js/ui/ui.js	(date 1744605692528)
+@@ -0,0 +1,60 @@
++// UI Update Functions - Similar to updating model attributes in Spring MVC
++function loadQuestion() {
++    // Check if we're at the last question
++    if (quizState.isFirstQuestion()) {
++        elements.quiz.prevButton.setAttribute("disabled", true);
++    } else {
++        elements.quiz.prevButton.removeAttribute("disabled");
++    }
++
++    const question = quizState.getCurrentQuestion();
++    const currentIndex = quizState.currentQuestionIndex;
++
++    // Update question text and counter
++    elements.quiz.questionText.textContent = question.question;
++    elements.quiz.questionCounter.textContent = currentIndex + 1;
++
++    // Update progress bar
++    const progressPercentage = ((currentIndex + 1) / quizData.length) * 100;
++    elements.quiz.progressBar.style.width = `${progressPercentage}%`;
++
++    // Update next button text on last question
++    elements.quiz.nextButton.textContent = quizState.isLastQuestion()
++        ? "Review Answers"
++        : "Next Question";
++
++    // Update mark button text
++    updateMarkButtonText();
++
++    // Clear and rebuild options
++    elements.quiz.optionsContainer.innerHTML = "";
++    question.options.forEach((option, index) => {
++        const optionElement = document.createElement("button");
++        optionElement.classList.add("option");
++        optionElement.textContent = option;
++        optionElement.dataset.index = index;
++
++        // Check if this option was previously selected
++        if (quizState.answers[currentIndex] === index) {
++            optionElement.classList.add("selected");
++        }
++
++        optionElement.addEventListener("click", () => {
++            // Deselect all options
++            document.querySelectorAll(".option").forEach((opt) => {
++                opt.classList.remove("selected");
++            });
++
++            // Select this option
++            optionElement.classList.add("selected");
++        });
++
++        elements.quiz.optionsContainer.appendChild(optionElement);
++    });
++}
++
++function updateMarkButtonText() {
++    elements.quiz.markButton.textContent = quizState.isMarked()
++        ? "Unmark Question"
++        : "Mark for Later";
++}
+\ No newline at end of file
+Index: org.eclipse.egit.core.cmp-master/.org.eclipse.egit.core.cmp-master/src/main/java/com/todoApp/View/ConsoleUI.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/org.eclipse.egit.core.cmp-master/.org.eclipse.egit.core.cmp-master/src/main/java/com/todoApp/View/ConsoleUI.java b/org.eclipse.egit.core.cmp-master/.org.eclipse.egit.core.cmp-master/src/main/java/com/todoApp/View/ConsoleUI.java
+--- a/org.eclipse.egit.core.cmp-master/.org.eclipse.egit.core.cmp-master/src/main/java/com/todoApp/View/ConsoleUI.java	(revision c975aeefe410ec14cf1a571eaa7b73fb6dec708a)
++++ b/org.eclipse.egit.core.cmp-master/.org.eclipse.egit.core.cmp-master/src/main/java/com/todoApp/View/ConsoleUI.java	(date 1744600962305)
+@@ -148,9 +148,6 @@
+         }
+     }
+ 
+-
+-
+-
+     private void viewAllUsers() {
+         List<String> users = userDAO.getAllUser();
+         if (users.isEmpty()) {
+Index: demo1/src/main/java/example/elearning/entity/Option.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/demo1/src/main/java/example/elearning/entity/Option.java b/demo1/src/main/java/example/elearning/entity/Option.java
+new file mode 100644
+--- /dev/null	(date 1744989397550)
++++ b/demo1/src/main/java/example/elearning/entity/Option.java	(date 1744989397550)
+@@ -0,0 +1,30 @@
++package example.elearning.entity;
++
++import jakarta.persistence.*;
++import jakarta.validation.constraints.Size;
++import lombok.Getter;
++import lombok.Setter;
++import org.hibernate.annotations.Nationalized;
++
++@Getter
++@Setter
++@Entity
++@Table(name = "options")
++public class Option {
++    @Id
++    @Column(name = "id", nullable = false)
++    private Integer id;
++
++    @ManyToOne(fetch = FetchType.LAZY)
++    @JoinColumn(name = "questionId")
++    private example.elearning.entity.Question question;
++
++    @Size(max = 200)
++    @Nationalized
++    @Column(name = "optionText", length = 200)
++    private String optionText;
++
++    @Column(name = "optionIndex")
++    private Integer optionIndex;
++
++}
+\ No newline at end of file
+Index: demo1/src/main/resources/static/styles.css
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/demo1/src/main/resources/static/styles.css b/demo1/src/main/resources/static/styles.css
+new file mode 100644
+--- /dev/null	(date 1744602586328)
++++ b/demo1/src/main/resources/static/styles.css	(date 1744602586328)
+@@ -0,0 +1,245 @@
++/* Base Styles - Similar to Bootstrap's reset */
++* {
++    margin: 0;
++    padding: 0;
++    box-sizing: border-box;
++}
++
++body {
++    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
++    line-height: 1.6;
++    color: #333;
++    background-color: #f5f7fa;
++}
++
++.container {
++    max-width: 800px;
++    margin: 0 auto;
++    padding: 20px;
++}
++
++/* Card Component - Similar to Spring Boot Thymeleaf templates with Bootstrap */
++.card {
++    background: white;
++    border-radius: 8px;
++    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
++    padding: 30px;
++    margin-bottom: 20px;
++}
++
++/* Typography */
++h1 {
++    color: #2c3e50;
++    margin-bottom: 20px;
++    text-align: center;
++}
++
++h2 {
++    color: #3498db;
++    margin-bottom: 15px;
++}
++
++h3 {
++    color: #2c3e50;
++    margin: 15px 0 10px;
++}
++
++p {
++    margin-bottom: 15px;
++}
++
++/* Form Elements */
++.form-group {
++    margin-bottom: 20px;
++}
++
++label {
++    display: block;
++    margin-bottom: 5px;
++    font-weight: 600;
++}
++
++input[type="text"] {
++    width: 100%;
++    padding: 10px;
++    border: 1px solid #ddd;
++    border-radius: 4px;
++    font-size: 16px;
++}
++
++/* Buttons - Similar to Bootstrap buttons */
++.btn {
++    display: inline-block;
++    padding: 10px 20px;
++    border: none;
++    border-radius: 4px;
++    cursor: pointer;
++    font-size: 16px;
++    font-weight: 600;
++    text-align: center;
++    transition: background-color 0.3s, transform 0.1s;
++}
++
++.btn:active {
++    transform: translateY(1px);
++}
++
++.btn-primary {
++    background-color: #3498db;
++    color: white;
++}
++
++.btn-primary:hover {
++    background-color: #2980b9;
++}
++
++.btn-secondary {
++    background-color: #95a5a6;
++    color: white;
++}
++
++.btn-secondary:hover {
++    background-color: #7f8c8d;
++}
++
++.button-group {
++    display: flex;
++    justify-content: space-between;
++    margin-top: 20px;
++}
++
++/* Screen Management */
++.screen {
++    display: none;
++}
++
++.screen.active {
++    display: block;
++}
++
++/* Header */
++header {
++    display: flex;
++    justify-content: space-between;
++    align-items: center;
++    margin-bottom: 20px;
++}
++
++#student-info,
++#review-student-info {
++    font-weight: 600;
++    color: #3498db;
++}
++
++/* Quiz Specific Styles */
++.quiz-header {
++    display: flex;
++    flex-direction: column;
++    margin-bottom: 20px;
++}
++
++.progress-container {
++    width: 100%;
++    height: 8px;
++    background-color: #ecf0f1;
++    border-radius: 4px;
++    margin-bottom: 10px;
++}
++
++#progress-bar {
++    height: 100%;
++    background-color: #3498db;
++    border-radius: 4px;
++    width: 0%;
++    transition: width 0.3s ease;
++}
++
++#question-counter {
++    text-align: right;
++    font-size: 14px;
++    color: #7f8c8d;
++}
++
++#question-text {
++    margin-bottom: 20px;
++}
++
++/* Options */
++.option {
++    display: block;
++    width: 100%;
++    padding: 12px 15px;
++    margin-bottom: 10px;
++    background-color: #f8f9fa;
++    border: 1px solid #ddd;
++    border-radius: 4px;
++    cursor: pointer;
++    transition: background-color 0.2s;
++    text-align: left;
++}
++
++.option:hover {
++    background-color: #e9ecef;
++}
++
++.option.selected {
++    background-color: #d6eaf8;
++    border-color: #3498db;
++}
++
++/* Review Screen */
++#marked-questions-container,
++#all-answers-container {
++    margin-bottom: 20px;
++}
++
++#marked-questions-list {
++    list-style-type: none;
++}
++
++#marked-questions-list li {
++    padding: 8px 0;
++    border-bottom: 1px solid #ecf0f1;
++}
++
++.question-review {
++    padding: 15px;
++    margin-bottom: 15px;
++    border-radius: 4px;
++    background-color: #f8f9fa;
++}
++
++.question-review h4 {
++    margin-bottom: 10px;
++    color: #2c3e50;
++}
++
++.marked-badge {
++    display: inline-block;
++    background-color: #f39c12;
++    color: white;
++    font-size: 12px;
++    padding: 3px 8px;
++    border-radius: 10px;
++    margin-left: 10px;
++}
++
++/* Responsive Design */
++@media (max-width: 600px) {
++    .container {
++        padding: 10px;
++    }
++
++    .card {
++        padding: 20px;
++    }
++
++    .button-group {
++        flex-direction: column;
++        gap: 10px;
++    }
++
++    .btn {
++        width: 100%;
++    }
++}
+\ No newline at end of file
+Index: demo1/src/main/java/example/elearning/repository/AnswerRepository.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/demo1/src/main/java/example/elearning/repository/AnswerRepository.java b/demo1/src/main/java/example/elearning/repository/AnswerRepository.java
+new file mode 100644
+--- /dev/null	(date 1745041672819)
++++ b/demo1/src/main/java/example/elearning/repository/AnswerRepository.java	(date 1745041672819)
+@@ -0,0 +1,15 @@
++package example.elearning.repository;
++
++import example.elearning.entity.Answer;
++import org.springframework.data.jpa.repository.JpaRepository;
++import org.springframework.data.jpa.repository.Modifying;
++import org.springframework.data.jpa.repository.Query;
++import org.springframework.stereotype.Repository;
++
++@Repository
++public interface AnswerRepository extends JpaRepository<Answer, Long> {
++
++    @Modifying
++    @Query("DELETE FROM Answer a WHERE a.attempt.id = :attemptId")
++    void deleteByAttemptId(Long attemptId);
++}
+\ No newline at end of file
+Index: demo1/src/main/resources/static/index.html
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/demo1/src/main/resources/static/index.html b/demo1/src/main/resources/static/index.html
+new file mode 100644
+--- /dev/null	(date 1744997920290)
++++ b/demo1/src/main/resources/static/index.html	(date 1744997920290)
+@@ -0,0 +1,106 @@
++<!DOCTYPE html>
++<html lang="en">
++
++<head>
++    <meta charset="UTF-8" />
++    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
++    <title>E-Learning Quiz System</title>
++    <link rel="stylesheet" href="styles.css" />
++</head>
++
++<body>
++<div class="container">
++    <!-- Login Screen -->
++    <div id="login-screen" class="screen active">
++        <h1>E-Learning Quiz System</h1>
++        <div class="card">
++            <h2>Welcome</h2>
++            <p>Please enter your name to begin the quiz</p>
++            <form id="login-form">
++                <div class="form-group">
++                    <label for="student-name">Full Name:</label>
++                    <input type="text" id="student-name" required />
++                </div>
++                <button onclick="startQuiz()"  type="submit" class="btn btn-primary">Start Quiz</button>
++                <p id="startResult"></p>
++            </form>
++        </div>
++    </div>
++
++    <!-- Quiz Screen -->
++    <div id="quiz-screen" class="screen">
++        <header>
++            <h1>E-Learning Quiz</h1>
++            <div id="student-info">Student: <span id="display-name"></span></div>
++            <div id="message"></div>
++        </header>
++        <div class="card">
++            <div class="quiz-header">
++                <div class="progress-container">
++                    <div id="progress-bar"></div>
++                </div>
++                <div id="question-counter">
++                    Question <span id="current-question">1</span> of
++                    <span id="total-questions">0</span>
++                </div>
++            </div>
++            <div id="question-container">
++                <h2 id="question-text"></h2>
++                <div id="options-container"></div>
++            </div>
++            <div class="button-group">
++                <button id="prev-button" class="btn btn-secondary">Back</button>
++                <button id="mark-button" class="btn btn-secondary">
++                    Mark for Later
++                </button>
++                <button id="next-button" class="btn btn-primary">Next</button>
++            </div>
++        </div>
++    </div>
++
++    <!-- Review Screen -->
++    <div id="review-screen" class="screen">
++        <header>
++            <h1>Review Your Answers</h1>
++            <div id="review-student-info">
++                Student: <span id="review-display-name"></span>
++            </div>
++        </header>
++        <div class="card">
++            <h2>Review your answers before submitting</h2>
++            <div id="marked-questions-container">
++                <h3>Marked Questions:</h3>
++                <ul id="marked-questions-list"></ul>
++            </div>
++            <div id="all-answers-container">
++                <h3>All Questions:</h3>
++                <div id="answers-summary"></div>
++            </div>
++            <div class="button-group">
++                <button id="back-to-quiz" class="btn btn-secondary">
++                    Back to Quiz
++                </button>
++                <button id="submit-quiz" class="btn btn-primary">
++                    Submit Quiz
++                </button>
++            </div>
++        </div>
++    </div>
++
++    <!-- Confirmation Screen -->
++    <div id="confirmation-screen" class="screen">
++        <div class="card">
++            <h2>Quiz Submitted!</h2>
++            <p>Thank you for completing the quiz.</p>
++            <div id="submission-summary"></div>
++            <button id="restart-quiz" class="btn btn-primary">
++                Take Another Quiz
++            </button>
++        </div>
++    </div>
++</div>
++
++<script src="script.js"></script>
++</body>
++
++</html>
+\ No newline at end of file
+Index: demo1/src/main/java/example/elearning/repository/StudentRepository.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/demo1/src/main/java/example/elearning/repository/StudentRepository.java b/demo1/src/main/java/example/elearning/repository/StudentRepository.java
+new file mode 100644
+--- /dev/null	(date 1744988613502)
++++ b/demo1/src/main/java/example/elearning/repository/StudentRepository.java	(date 1744988613502)
+@@ -0,0 +1,12 @@
++package example.elearning.repository;
++
++import example.elearning.entity.Student;
++import org.springframework.data.jpa.repository.JpaRepository;
++import org.springframework.stereotype.Repository;
++
++import java.util.Optional;
++
++@Repository
++public interface StudentRepository extends JpaRepository<Student,Long> {
++    Optional<Student> findByName(String name);
++}
+Index: demo1/src/main/java/example/elearning/repository/QuestionRepository.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/demo1/src/main/java/example/elearning/repository/QuestionRepository.java b/demo1/src/main/java/example/elearning/repository/QuestionRepository.java
+new file mode 100644
+--- /dev/null	(date 1744971314564)
++++ b/demo1/src/main/java/example/elearning/repository/QuestionRepository.java	(date 1744971314564)
+@@ -0,0 +1,9 @@
++package example.elearning.repository;
++
++import example.elearning.entity.Question;
++import org.springframework.data.jpa.repository.JpaRepository;
++import org.springframework.stereotype.Repository;
++
++@Repository
++public interface QuestionRepository extends JpaRepository<Question,Long> {
++}
+Index: demo1/src/main/java/example/elearning/dto/QuizResultDTO.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/demo1/src/main/java/example/elearning/dto/QuizResultDTO.java b/demo1/src/main/java/example/elearning/dto/QuizResultDTO.java
+new file mode 100644
+--- /dev/null	(date 1744853414287)
++++ b/demo1/src/main/java/example/elearning/dto/QuizResultDTO.java	(date 1744853414287)
+@@ -0,0 +1,17 @@
++package example.elearning.dto;
++
++import lombok.AllArgsConstructor;
++import lombok.Data;
++import lombok.NoArgsConstructor;
++
++@Data
++@AllArgsConstructor
++@NoArgsConstructor
++public class QuizResultDTO {
++    private Integer totalQuestion;
++    private Integer totalAnswerQuestion;
++    private String studentName;
++    private int answeredQuestion;
++    private int correctAnswer;
++    private double score;
++}
+Index: demo1/src/main/java/example/elearning/entity/Answer.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/demo1/src/main/java/example/elearning/entity/Answer.java b/demo1/src/main/java/example/elearning/entity/Answer.java
+new file mode 100644
+--- /dev/null	(date 1744972831577)
++++ b/demo1/src/main/java/example/elearning/entity/Answer.java	(date 1744972831577)
+@@ -0,0 +1,29 @@
++package example.elearning.entity;
++
++import jakarta.persistence.*;
++import lombok.Getter;
++import lombok.Setter;
++
++@Entity
++@Table(name = "Answers")
++@Getter
++@Setter
++public class Answer {
++    @Id
++    @GeneratedValue(strategy = GenerationType.IDENTITY)
++    private Long id;
++
++    @ManyToOne
++    @JoinColumn(name = "attempt_id", nullable = false)
++    private Attempt attempt;
++
++    @ManyToOne
++    @JoinColumn(name = "question_id", nullable = false)
++    private Question question;
++
++    @Column(name = "selected_option")
++    private String selectedOption;
++
++    @Column(name = "is_marked")
++    private Boolean isMarked = false;
++}
+\ No newline at end of file
+Index: demo1/src/main/java/example/elearning/entity/Attempt.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/demo1/src/main/java/example/elearning/entity/Attempt.java b/demo1/src/main/java/example/elearning/entity/Attempt.java
+new file mode 100644
+--- /dev/null	(date 1744988831655)
++++ b/demo1/src/main/java/example/elearning/entity/Attempt.java	(date 1744988831655)
+@@ -0,0 +1,29 @@
++package example.elearning.entity;
++
++import jakarta.persistence.*;
++import lombok.Getter;
++import lombok.Setter;
++
++import java.time.LocalDateTime;
++
++@Entity
++@Table(name = "Attempts")
++@Getter
++@Setter
++public class Attempt {
++    @Id
++    @GeneratedValue(strategy = GenerationType.IDENTITY)
++    private Long id;
++
++    @ManyToOne
++    @JoinColumn(name = "student_id", nullable = false)
++    private Student student;
++
++    @Column(nullable = false)
++    private LocalDateTime startTime;
++
++    private LocalDateTime endTime;
++
++    private boolean completed;
++    private Double score;
++}
+\ No newline at end of file
+Index: demo1/src/main/java/example/elearning/e_learning.sql
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/demo1/src/main/java/example/elearning/e_learning.sql b/demo1/src/main/java/example/elearning/e_learning.sql
+new file mode 100644
+--- /dev/null	(date 1744680703453)
++++ b/demo1/src/main/java/example/elearning/e_learning.sql	(date 1744680703453)
+@@ -0,0 +1,66 @@
++create table answer
++(
++    id              int identity
++        primary key,
++    studentID       int not null,
++    questionId      int not null
++        references student
++            on delete cascade
++        references question
++            on delete cascade,
++    answer          nvarchar(255),
++    markedForReview bit default 0,
++    examSessionId   int not null
++        references examSession
++)
++go
++create table Exam
++(
++    id          int identity
++        primary key,
++    title       nvarchar(255) not null,
++    description nvarchar(max),
++    createdAt   datetime default getdate()
++)
++go
++create table examSession
++(
++    id          int identity
++        primary key,
++    studentId   int not null
++        references student
++            on delete cascade,
++    examId      int not null
++        references Exam
++            on delete cascade,
++    startedId   datetime default getdate(),
++    submittedAt datetime,
++    score       int
++)
++go
++create table question
++(
++    id            int identity
++        primary key,
++    text          nvarchar(max) not null,
++    correctAnswer nvarchar(255) not null
++)
++go
++create table questionOption
++(
++    id         int identity
++        primary key,
++    questionId int not null
++        references question
++            on delete cascade,
++    optionText nvarchar(255)
++)
++go
++create table student
++(
++    id   int identity
++        primary key,
++    name nvarchar(50) not null
++)
++go
++
